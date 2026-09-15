@@ -154,34 +154,34 @@ class FinancialPlanningApp {
                         
                         <div class="form-group">
                             <label class="form-label">Client Name</label>
-                            <input type="text" value="${plan.clientName}" onchange="app.updatePlan({clientName: this.value})" oninput="app.updateFieldAndRender('clientName', this.value)">
+                            <input type="text" value="${plan.clientName}" onchange="app.updatePlan({clientName: this.value})" oninput="app.updateAndRender('clientName', this.value)">
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Current Age</label>
-                                <input type="text" inputmode="decimal" value="${plan.currentAge ?? ''}" onchange="app.updatePlan({currentAge: parseDecimal(this.value)})" oninput="app.updateFieldAndRender('currentAge', this.value)">
+                                <input type="text" inputmode="decimal" value="${plan.currentAge ?? ''}" onchange="app.updatePlan({currentAge: parseDecimal(this.value)})" oninput="app.updateAndRender('currentAge', this.value)">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Retirement Age</label>
-                                <input type="text" inputmode="decimal" value="${plan.retirementAge ?? ''}" onchange="app.updatePlan({retirementAge: parseDecimal(this.value)})" oninput="app.updateFieldAndRender('retirementAge', this.value)">
+                                <input type="text" inputmode="decimal" value="${plan.retirementAge ?? ''}" onchange="app.updatePlan({retirementAge: parseDecimal(this.value)})" oninput="app.updateAndRender('retirementAge', this.value)">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Dependents</label>
-                                <input type="text" inputmode="decimal" value="${plan.dependents ?? ''}" onchange="app.updatePlan({dependents: parseDecimal(this.value)})" oninput="app.updateFieldAndRender('dependents', this.value)">
+                                <input type="text" inputmode="decimal" value="${plan.dependents ?? ''}" onchange="app.updatePlan({dependents: parseDecimal(this.value)})" oninput="app.updateAndRender('dependents', this.value)">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Monthly Income (₹)</label>
-                                <input type="text" inputmode="decimal" value="${plan.monthlyIncome ?? ''}" onchange="app.updatePlan({monthlyIncome: parseDecimal(this.value)})" oninput="app.updateFieldAndRender('monthlyIncome', this.value)">
+                                <input type="text" inputmode="decimal" value="${plan.monthlyIncome ?? ''}" onchange="app.updatePlan({monthlyIncome: parseDecimal(this.value)})" oninput="app.updateAndRender('monthlyIncome', this.value)">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Monthly Expenses (₹)</label>
-                            <input type="text" inputmode="decimal" value="${plan.monthlyExpenses ?? ''}" onchange="app.updatePlan({monthlyExpenses: parseDecimal(this.value)})" oninput="app.updateFieldAndRender('monthlyExpenses', this.value)">
+                            <input type="text" inputmode="decimal" value="${plan.monthlyExpenses ?? ''}" onchange="app.updatePlan({monthlyExpenses: parseDecimal(this.value)})" oninput="app.updateAndRender('monthlyExpenses', this.value)">
                         </div>
                     </div>
 
@@ -600,7 +600,8 @@ class FinancialPlanningApp {
         this.render();
     }
 
-    updateFieldAndRender(fieldName, value) {
+    updateAndRender(fieldName, value) {
+        // Update plan
         if (fieldName === 'clientName') {
             this.currentPlan.clientName = value;
         } else if (fieldName === 'currentAge') {
@@ -615,10 +616,12 @@ class FinancialPlanningApp {
             this.currentPlan.monthlyExpenses = parseInt(value.replace(/,/g, '')) || 0;
         }
         
-        // Update the report section
-        const reportContainer = document.querySelector('.report-pane');
-        if (reportContainer) {
-            reportContainer.innerHTML = this.renderReport(this.currentPlan);
+        // Re-render entire builder
+        const builderHtml = this.renderBuilder();
+        const app = document.getElementById('app');
+        if (app) {
+            app.innerHTML = builderHtml;
+            this.attachBuilderEvents();
         }
     }
 
