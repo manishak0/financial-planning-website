@@ -616,12 +616,10 @@ class FinancialPlanningApp {
             this.currentPlan.monthlyExpenses = parseInt(value.replace(/,/g, '')) || 0;
         }
         
-        // Re-render entire builder
-        const builderHtml = this.renderBuilder();
-        const app = document.getElementById('app');
-        if (app) {
-            app.innerHTML = builderHtml;
-            this.attachBuilderEvents();
+        // Only re-render the report pane, not the entire page
+        const reportPane = document.querySelector('.report-pane');
+        if (reportPane) {
+            reportPane.innerHTML = this.renderReport(this.currentPlan);
         }
     }
 
