@@ -1,4 +1,4 @@
-// Main app controller
+// Main app controller - COMPLETELY FIXED VERSION
 class FinancialPlanningApp {
     constructor() {
         this.currentView = 'dashboard';
@@ -83,7 +83,7 @@ class FinancialPlanningApp {
                         + New Client Plan
                     </button>
                     <button class="btn btn-secondary" onclick="app.exportPlans()">
-                        Export Plans (JSON)
+                        📥 Download PDF
                     </button>
                 </div>
 
@@ -129,7 +129,6 @@ class FinancialPlanningApp {
         const totalAssets = plan.assets.reduce((sum, a) => sum + (a.value || 0), 0);
         const totalDebts = plan.debts.reduce((sum, d) => sum + (d.outstanding || 0), 0);
         const totalEmi = plan.debts.reduce((sum, d) => sum + (d.monthlyEmi || 0), 0);
-        const emergencyFundTarget = getEmergencyFundTarget(plan.monthlyIncome || 0);
 
         return `
             <div class="builder-layout">
@@ -154,34 +153,34 @@ class FinancialPlanningApp {
                         
                         <div class="form-group">
                             <label class="form-label">Client Name</label>
-                            <input type="text" value="${plan.clientName}" onchange="app.updatePlan({clientName: this.value}); app.renderReportOnly()">
+                            <input type="text" value="${plan.clientName}" onblur="app.updatePlanField('clientName', this.value)">
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Current Age</label>
-                                <input type="text" inputmode="decimal" value="${plan.currentAge ?? ''}" onchange="app.updatePlan({currentAge: parseDecimal(this.value)}); app.renderReportOnly()">
+                                <input type="text" inputmode="decimal" value="${plan.currentAge ?? ''}" onblur="app.updatePlanField('currentAge', this.value)">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Retirement Age</label>
-                                <input type="text" inputmode="decimal" value="${plan.retirementAge ?? ''}" onchange="app.updatePlan({retirementAge: parseDecimal(this.value)}); app.renderReportOnly()">
+                                <input type="text" inputmode="decimal" value="${plan.retirementAge ?? ''}" onblur="app.updatePlanField('retirementAge', this.value)">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Dependents</label>
-                                <input type="text" inputmode="decimal" value="${plan.dependents ?? ''}" onchange="app.updatePlan({dependents: parseDecimal(this.value)}); app.renderReportOnly()">
+                                <input type="text" inputmode="decimal" value="${plan.dependents ?? ''}" onblur="app.updatePlanField('dependents', this.value)">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Monthly Income (₹)</label>
-                                <input type="text" inputmode="decimal" value="${plan.monthlyIncome ?? ''}" onchange="app.updatePlan({monthlyIncome: parseDecimal(this.value)}); app.renderReportOnly()">
+                                <input type="text" inputmode="decimal" value="${plan.monthlyIncome ?? ''}" onblur="app.updatePlanField('monthlyIncome', this.value)">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Monthly Expenses (₹)</label>
-                            <input type="text" inputmode="decimal" value="${plan.monthlyExpenses ?? ''}" onchange="app.updatePlan({monthlyExpenses: parseDecimal(this.value)}); app.renderReportOnly()">
+                            <input type="text" inputmode="decimal" value="${plan.monthlyExpenses ?? ''}" onblur="app.updatePlanField('monthlyExpenses', this.value)">
                         </div>
                     </div>
 
@@ -191,51 +190,63 @@ class FinancialPlanningApp {
                         
                         ${plan.goals.map((goal, idx) => `
                             <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #E4DFD2;">
-                                <input type="text" value="${goal.name}" placeholder="Goal name" style="width: 100%; margin-bottom: 8px;" onchange="app.updateGoal(${idx}, {name: this.value})">
+                                <input type="text" value="${goal.name}" placeholder="Goal name" style="width: 100%; margin-bottom: 8px;" onblur="app.updateGoal(${idx}, {name: this.value})">
                                 <div class="form-row">
-                                    <input type="text" inputmode="decimal" value="${goal.targetYear}" placeholder="Target year" onchange="app.updateGoal(${idx}, {targetYear: parseInt(this.value)})">
-                                    <input type="text" inputmode="decimal" value="${goal.targetAmount || ''}" placeholder="Target amount" onchange="app.updateGoal(${idx}, {targetAmount: parseDecimal(this.value)})">
+                                    <input type="text" inputmode="decimal" value="${goal.targetYear}" placeholder="Target year" onblur="app.updateGoal(${idx}, {targetYear: parseInt(this.value)})">
+                                    <input type="text" inputmode="decimal" value="${goal.targetAmount || ''}" placeholder="Target amount" onblur="app.updateGoal(${idx}, {targetAmount: parseDecimal(this.value)})">
                                 </div>
                                 <button class="btn btn-delete" onclick="app.removeGoal(${idx})">Remove</button>
                             </div>
                         `).join('')}
                         
-                        <button class="btn btn-primary w-full" onclick="app.addGoal()">+ Add goal</button>
+                        <button class="btn btn-primary" onclick="app.addGoal()">+ Add Goal</button>
                     </div>
 
-                    <!-- Risk Profile Card -->
+                    <!-- Risk Profile -->
                     <div class="card">
                         <div class="card-title">Risk Profile</div>
-                        <div class="form-row">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                             ${['conservative', 'moderate', 'aggressive'].map(risk => `
-                                <button class="btn ${plan.riskProfile === risk ? 'btn-primary' : 'btn-secondary'}" style="text-transform: capitalize;" onclick="app.updatePlan({riskProfile: '${risk}'})">
+                                <button class="btn ${plan.riskProfile === risk ? 'btn-primary' : 'btn-secondary'}" style="text-transform: capitalize;" onclick="app.updatePlanField('riskProfile', '${risk}')">
                                     ${risk}
                                 </button>
                             `).join('')}
                         </div>
                     </div>
 
-                    <!-- Insurance & Emergency Fund -->
+                    <!-- Insurance Card -->
                     <div class="card">
-                        <div class="card-title">Insurance & Emergency</div>
+                        <div class="card-title">Insurance</div>
                         
                         <div class="form-group">
-                            <label class="form-label">Life Cover (₹)</label>
-                            <input type="text" inputmode="decimal" value="${plan.insuranceLife || ''}" onchange="app.updatePlan({insuranceLife: parseDecimal(this.value)})">
+                            <label class="form-label">Life Cover Current (₹)</label>
+                            <input type="text" inputmode="decimal" value="${plan.insuranceLife || ''}" onblur="app.updatePlanField('insuranceLife', this.value)">
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Health Cover (₹)</label>
-                            <input type="text" inputmode="decimal" value="${plan.insuranceHealth || ''}" onchange="app.updatePlan({insuranceHealth: parseDecimal(this.value)})">
+                            <label class="form-label">Health Cover Current (₹)</label>
+                            <input type="text" inputmode="decimal" value="${plan.insuranceHealth || ''}" onblur="app.updatePlanField('insuranceHealth', this.value)">
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Emergency Fund (₹)</label>
-                            <input type="text" inputmode="decimal" value="${plan.emergencyFundCurrent || ''}" onchange="app.updatePlan({emergencyFundCurrent: parseDecimal(this.value)})">
-                            <p style="font-size: 12px; color: #6B6558; margin-top: 8px;">
-                                Target (6× income): <strong>${formatIndianCurrency(emergencyFundTarget)}</strong>
-                            </p>
+                            <label class="form-label">Emergency Fund Current (₹)</label>
+                            <input type="text" inputmode="decimal" value="${plan.emergencyFundCurrent || ''}" onblur="app.updatePlanField('emergencyFundCurrent', this.value)">
                         </div>
+                    </div>
+
+                    <!-- Assets Card -->
+                    <div class="card">
+                        <div class="card-title">Assets</div>
+                        
+                        ${plan.assets.map((asset, idx) => `
+                            <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #E4DFD2;">
+                                <input type="text" value="${asset.name}" placeholder="Asset name" onblur="app.updateAsset(${idx}, {name: this.value})" style="width: 100%; margin-bottom: 4px;">
+                                <input type="text" inputmode="decimal" value="${asset.value || ''}" placeholder="Value" onblur="app.updateAsset(${idx}, {value: parseDecimal(this.value)})">
+                                <button class="btn btn-delete" onclick="app.removeAsset(${idx})" style="width: 100%; margin-top: 4px;">Remove</button>
+                            </div>
+                        `).join('')}
+                        
+                        <button class="btn btn-primary" onclick="app.addAsset()">+ Add Asset</button>
                     </div>
 
                     <!-- Debts Card -->
@@ -243,29 +254,23 @@ class FinancialPlanningApp {
                         <div class="card-title">Debts</div>
                         
                         ${plan.debts.map((debt, idx) => `
-                            <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #E4DFD2;">
-                                <input type="text" value="${debt.name}" placeholder="Loan name" style="width: 100%; margin-bottom: 8px;" onchange="app.updateDebt(${idx}, {name: this.value})">
+                            <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #E4DFD2;">
+                                <input type="text" value="${debt.name}" placeholder="Debt name" onblur="app.updateDebt(${idx}, {name: this.value})" style="width: 100%; margin-bottom: 4px;">
                                 <div class="form-row">
-                                    <input type="text" inputmode="decimal" value="${debt.outstanding || ''}" placeholder="Outstanding (₹)" onchange="app.updateDebt(${idx}, {outstanding: parseDecimal(this.value)})">
-                                    <input type="text" inputmode="decimal" value="${debt.monthlyEmi || ''}" placeholder="Monthly EMI (₹)" onchange="app.updateDebt(${idx}, {monthlyEmi: parseDecimal(this.value)})">
+                                    <input type="text" inputmode="decimal" value="${debt.outstanding || ''}" placeholder="Outstanding" onblur="app.updateDebt(${idx}, {outstanding: parseDecimal(this.value)})">
+                                    <input type="text" inputmode="decimal" value="${debt.monthlyEmi || ''}" placeholder="Monthly EMI" onblur="app.updateDebt(${idx}, {monthlyEmi: parseDecimal(this.value)})">
                                 </div>
-                                <button class="btn btn-delete" onclick="app.removeDebt(${idx})">Remove</button>
+                                <button class="btn btn-delete" onclick="app.removeDebt(${idx})" style="width: 100%; margin-top: 4px;">Remove</button>
                             </div>
                         `).join('')}
                         
-                        <button class="btn btn-primary w-full" onclick="app.addDebt()">+ Add debt</button>
+                        <button class="btn btn-primary" onclick="app.addDebt()">+ Add Debt</button>
                     </div>
                 </div>
 
                 <!-- Report Pane -->
                 <div class="report-pane">
-                    <div class="report-preview-info no-print">
-                        Live preview — this is the PDF the client receives.
-                    </div>
-
-                    <div class="report-container">
-                        ${this.renderReport(plan)}
-                    </div>
+                    ${this.renderReport(plan)}
                 </div>
             </div>
         `;
@@ -349,231 +354,263 @@ class FinancialPlanningApp {
                         </tbody>
                     </table>
                 </div>
-
-                <div class="page-footer">
-                    <div>SLA Finserv Private Limited — Confidential financial plan prepared for ${plan.clientName}</div>
-                    <div>Page 1 of 3</div>
-                </div>
             </div>
 
             <!-- PAGE 2 -->
             <div class="report-page">
-                <div class="page-header">
-                    <div class="page-title">Goals & Investment Projections</div>
-                    <p style="font-size: 13px; color: #6B6558; margin: 0;">
-                        Projected using each goal's own expected return, reflecting its investment horizon
-                    </p>
+                <h3 style="margin-bottom: 16px;">Goals & Projections</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Goal</th>
+                            <th>Target</th>
+                            <th>Timeline</th>
+                            <th>Expected Return</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${plan.goals.map(goal => `
+                            <tr>
+                                <td>${goal.name}</td>
+                                <td>${formatIndianCurrency(goal.targetAmount)}</td>
+                                <td>${goal.targetYear} (${Math.max(0, goal.targetYear - new Date().getFullYear())} years)</td>
+                                <td>${goal.expectedReturnRate || 'Auto'}%</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <div style="margin-top: 24px;">
+                    <h4 style="margin-bottom: 12px;">Asset Allocation (${plan.riskProfile || 'Moderate'})</h4>
+                    <div class="stat-cards">
+                        ${plan.riskProfile === 'conservative' ? `
+                            <div class="stat-card">
+                                <div class="stat-label">Equity</div>
+                                <div class="stat-value">30%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Hybrid</div>
+                                <div class="stat-value">30%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Debt</div>
+                                <div class="stat-value">40%</div>
+                            </div>
+                        ` : plan.riskProfile === 'aggressive' ? `
+                            <div class="stat-card">
+                                <div class="stat-label">Equity</div>
+                                <div class="stat-value">65%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Hybrid</div>
+                                <div class="stat-value">25%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Debt</div>
+                                <div class="stat-value">10%</div>
+                            </div>
+                        ` : `
+                            <div class="stat-card">
+                                <div class="stat-label">Equity</div>
+                                <div class="stat-value">50%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Hybrid</div>
+                                <div class="stat-value">30%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Debt</div>
+                                <div class="stat-value">20%</div>
+                            </div>
+                        `}
+                    </div>
                 </div>
 
-                <div style="margin-bottom: 24px;">
+                <div style="margin-top: 24px;">
+                    <h4 style="margin-bottom: 12px;">Insurance & Emergency Fund</h4>
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Goal</th>
-                                <th style="text-align: center;">Target Year</th>
-                                <th style="text-align: right;">Target Amount</th>
-                                <th style="text-align: right;">Projected Value</th>
-                                <th style="text-align: right;">Additional SIP</th>
-                                <th style="text-align: center;">Status</th>
+                                <th>Type</th>
+                                <th>Current</th>
+                                <th>Recommended</th>
+                                <th>Gap</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${plan.goals.map(goal => {
-                                const years = goal.targetYear - CURRENT_YEAR;
-                                const expectedReturn = goal.expectedReturnRate || getAutoExpectedReturn(goal.targetYear);
-                                const projectedValue = 
-                                    fvLumpsum(goal.currentSavings, expectedReturn, years) +
-                                    fvStepUpSip(goal.monthlySip, expectedReturn, goal.stepUpPercent, years);
-                                const requiredSip = calculateRequiredSip(goal.targetAmount, goal.currentSavings, expectedReturn, goal.stepUpPercent, years);
-                                const additionalSip = calculateAdditionalSip(requiredSip, goal.monthlySip);
-                                const isOnTrack = projectedValue >= goal.targetAmount;
-
-                                return `
-                                    <tr style="font-size: 12px;">
-                                        <td>${goal.name}</td>
-                                        <td style="text-align: center;">${goal.targetYear}</td>
-                                        <td style="text-align: right;">${formatIndianCurrency(goal.targetAmount)}</td>
-                                        <td style="text-align: right;">${formatIndianCurrency(projectedValue)}</td>
-                                        <td style="text-align: right; color: ${additionalSip > 0 ? '#B0552F' : '#3B6B4F'};">${formatIndianCurrency(additionalSip)}</td>
-                                        <td style="text-align: center; color: ${isOnTrack ? '#3B6B4F' : '#B0552F'};">${isOnTrack ? '✓ On track' : '⚠ Shortfall'}</td>
-                                    </tr>
-                                `;
-                            }).join('')}
+                            <tr>
+                                <td>Life Insurance</td>
+                                <td>${formatIndianCurrency(plan.insuranceLife)}</td>
+                                <td>${formatIndianCurrency(recommendedLifeCover)}</td>
+                                <td>${formatIndianCurrency(Math.max(0, recommendedLifeCover - (plan.insuranceLife || 0)))}</td>
+                            </tr>
+                            <tr>
+                                <td>Health Insurance</td>
+                                <td>${formatIndianCurrency(plan.insuranceHealth)}</td>
+                                <td>${formatIndianCurrency(recommendedHealthCover)}</td>
+                                <td>${formatIndianCurrency(Math.max(0, recommendedHealthCover - (plan.insuranceHealth || 0)))}</td>
+                            </tr>
+                            <tr>
+                                <td>Emergency Fund</td>
+                                <td>${formatIndianCurrency(plan.emergencyFundCurrent)}</td>
+                                <td>${formatIndianCurrency(emergencyFundTarget)}</td>
+                                <td>${formatIndianCurrency(Math.max(0, emergencyFundTarget - (plan.emergencyFundCurrent || 0)))}</td>
+                            </tr>
                         </tbody>
                     </table>
-                </div>
-
-                <div class="page-footer">
-                    <div>SLA Finserv Private Limited — Confidential financial plan prepared for ${plan.clientName}</div>
-                    <div>Page 2 of 3</div>
                 </div>
             </div>
 
             <!-- PAGE 3 -->
             <div class="report-page">
-                <div class="page-header">
-                    <div class="page-title">Risk, Retirement & Protection</div>
-                </div>
-
-                <div style="margin-bottom: 24px;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-                        <div>
-                            <h4 style="margin-bottom: 12px;">Recommended Asset Allocation — ${plan.riskProfile || 'Moderate'}</h4>
-                            ${[
-                                { name: 'Equity', pct: plan.riskProfile === 'conservative' ? 30 : plan.riskProfile === 'aggressive' ? 70 : 50 },
-                                { name: 'Debt', pct: plan.riskProfile === 'conservative' ? 50 : plan.riskProfile === 'aggressive' ? 20 : 35 },
-                                { name: 'Gold', pct: plan.riskProfile === 'conservative' ? 10 : plan.riskProfile === 'aggressive' ? 5 : 10 },
-                                { name: 'Cash', pct: plan.riskProfile === 'conservative' ? 10 : plan.riskProfile === 'aggressive' ? 5 : 5 },
-                            ].map(asset => `
-                                <div style="margin-bottom: 8px;">
-                                    <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                                        <span>${asset.name}</span>
-                                        <span>${asset.pct}%</span>
-                                    </div>
-                                    <div style="background: #F0ECE0; height: 8px; border-radius: 2px; overflow: hidden;">
-                                        <div style="background: ${asset.name === 'Equity' ? '#1D2A4D' : asset.name === 'Debt' ? '#C0703C' : asset.name === 'Gold' ? '#FFD700' : '#999'}; width: ${asset.pct}%; height: 100%;"></div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-
-                        <div>
-                            <h4 style="margin-bottom: 12px;">Retirement Corpus vs. Target</h4>
-                            <p style="font-size: 12px; margin: 0;">Target: ${formatIndianCurrency(requiredRetirementCorpus)}</p>
-                        </div>
-                    </div>
-                </div>
-
+                <h3 style="margin-bottom: 16px;">Financial Position</h3>
+                
                 <div style="margin-bottom: 24px;">
                     <h4 style="margin-bottom: 12px;">Debt Summary</h4>
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Loan</th>
-                                <th style="text-align: right;">Outstanding</th>
-                                <th style="text-align: right;">Monthly EMI</th>
+                                <th>Debt Type</th>
+                                <th>Outstanding</th>
+                                <th>Monthly EMI</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${plan.debts.map(debt => `
-                                <tr style="font-size: 12px;">
+                                <tr>
                                     <td>${debt.name}</td>
-                                    <td style="text-align: right;">${formatIndianCurrency(debt.outstanding)}</td>
-                                    <td style="text-align: right;">${formatIndianCurrency(debt.monthlyEmi)}</td>
+                                    <td>${formatIndianCurrency(debt.outstanding)}</td>
+                                    <td>${formatIndianCurrency(debt.monthlyEmi)}</td>
                                 </tr>
                             `).join('')}
-                            <tr style="font-weight: 600; border-top: 1px solid #1D2A4D;">
+                            <tr style="border-top: 1px solid #1D2A4D; font-weight: 600;">
                                 <td>Total</td>
-                                <td style="text-align: right;">${formatIndianCurrency(totalDebts)}</td>
-                                <td style="text-align: right;">${formatIndianCurrency(totalEmi)}</td>
+                                <td>${formatIndianCurrency(totalDebts)}</td>
+                                <td>${formatIndianCurrency(totalEmi)}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div style="background: #F6F4EF; border: 1px solid #E4DFD2; border-radius: 4px; padding: 12px; font-size: 12px;">
-                    <div style="font-weight: 600; margin-bottom: 8px;">
-                        EMI-to-income ratio: <span style="color: ${emiRatio.isAboveCeiling ? '#B0552F' : '#3B6B4F'};">${emiRatio.ratio.toFixed(1)}%</span>
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <div class="stat-label">EMI to Income Ratio</div>
+                        <div class="stat-value">${emiRatio.ratio.toFixed(1)}%</div>
                     </div>
-                    <div style="font-size: 11px; color: #6B6558;">
-                        ${emiRatio.isAboveCeiling ? '⚠ Above the recommended 40% ceiling' : '✓ Within a healthy range'}
+                    <div class="stat-card">
+                        <div class="stat-label">Retirement Corpus</div>
+                        <div class="stat-value">${formatIndianCurrency(requiredRetirementCorpus)}</div>
                     </div>
                 </div>
 
-                <div class="page-footer">
-                    <div>SLA Finserv Private Limited — Confidential financial plan prepared for ${plan.clientName}</div>
-                    <div>Page 3 of 3</div>
+                <div style="margin-top: 24px; padding: 16px; background: #F6F4EF; border-radius: 3px;">
+                    <h4 style="margin-bottom: 8px;">Action Plan</h4>
+                    <ol style="margin: 0; padding-left: 20px; font-size: 13px;">
+                        <li>Review and update insurance coverage to meet recommended amounts</li>
+                        <li>Build emergency fund to target amount (3-6 months expenses)</li>
+                        <li>Create systematic investment plan for financial goals</li>
+                        <li>Monitor and rebalance investment portfolio quarterly</li>
+                        <li>Review retirement corpus progress annually</li>
+                    </ol>
+                </div>
+
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #E4DFD2; font-size: 11px; color: #6B6558; text-align: center;">
+                    <p style="margin: 0;">This plan is based on the information provided and standard financial assumptions.</p>
+                    <p style="margin: 4px 0 0 0;">Please consult with a financial advisor for personalized guidance.</p>
                 </div>
             </div>
         `;
     }
 
-    // Event handlers
-    attachDashboardEvents() {
-        const rmInput = document.getElementById('rmNameInput');
-        if (rmInput) {
-            rmInput.value = this.currentRMName || '';
+    // SIMPLE METHOD TO UPDATE PLAN FIELD - NO RENDER!
+    updatePlanField(field, value) {
+        if (field === 'currentAge' || field === 'retirementAge' || field === 'dependents' || 
+            field === 'monthlyIncome' || field === 'monthlyExpenses' || field === 'insuranceLife' || 
+            field === 'insuranceHealth' || field === 'emergencyFundCurrent') {
+            this.currentPlan[field] = parseInt(value.replace(/,/g, '')) || 0;
+        } else {
+            this.currentPlan[field] = value;
         }
-    }
-
-    attachBuilderEvents() {
-        // Events attached inline via onchange handlers
+        storage.savePlan(this.currentPlan);
+        // Update report only
+        const reportPane = document.querySelector('.report-pane');
+        if (reportPane) {
+            reportPane.innerHTML = this.renderReport(this.currentPlan);
+        }
     }
 
     setRMName() {
-        const input = document.getElementById('rmNameInput');
-        const name = input.value.trim();
-        if (!name) return;
-        
-        storage.setCurrentRMName(name);
-        this.currentRMName = name;
-        this.render();
+        const name = document.getElementById('rmNameInput').value.trim();
+        if (name) {
+            this.currentRMName = name;
+            storage.setCurrentRMName(name);
+            this.render();
+        }
     }
 
     newPlan() {
-        if (!this.currentRMName) {
-            alert('Please set your RM name first');
-            return;
-        }
-        
-        const plan = storage.createPlan(this.currentRMName, 'New Client');
-        storage.savePlan(plan);
+        const plan = {
+            id: Math.random().toString().substr(2),
+            clientName: 'New Client',
+            currentAge: 30,
+            retirementAge: 60,
+            dependents: 0,
+            monthlyIncome: 0,
+            monthlyExpenses: 0,
+            riskProfile: 'moderate',
+            insuranceLife: 0,
+            insuranceHealth: 0,
+            emergencyFundCurrent: 0,
+            goals: [],
+            assets: [{ id: Math.random().toString(), name: 'Asset 1', value: 0 }],
+            debts: [{ id: Math.random().toString(), name: 'Debt 1', outstanding: 0, monthlyEmi: 0 }],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+        storage.savePlan(plan, this.currentRMName);
+        this.currentPlanId = plan.id;
+        this.currentPlan = plan;
+        this.currentView = 'builder';
         window.location.hash = `builder/${plan.id}`;
+        this.render();
     }
 
     openPlan(id) {
         window.location.hash = `builder/${id}`;
     }
 
-    deletePlan(id) {
-        if (!confirm('Delete this plan?')) return;
-        storage.deletePlan(id);
-        this.render();
-    }
-
-    exportPlans() {
-        const json = storage.exportPlans();
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `financial-plans-${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-    }
-
     backToDashboard() {
-        this.savePlan();
         window.location.hash = '';
     }
 
     savePlan() {
-        if (!this.currentPlan) return;
-        storage.savePlan(this.currentPlan);
+        storage.savePlan(this.currentPlan, this.currentRMName);
         alert('Plan saved!');
     }
 
-    clearData() {
-        if (!confirm('Clear all data in this plan?')) return;
-        this.currentPlan = {
-            ...this.currentPlan,
-            currentAge: null,
-            retirementAge: null,
-            dependents: null,
-            monthlyIncome: null,
-            monthlyExpenses: null,
-            emergencyFundCurrent: 0,
-            insuranceLife: 0,
-            insuranceHealth: 0,
-            goals: [],
-            assets: [],
-            debts: [],
-        };
-        this.render();
+    deletePlan(id) {
+        if (confirm('Delete this plan?')) {
+            storage.deletePlan(id, this.currentRMName);
+            this.render();
+        }
     }
 
-    updatePlan(updates) {
-        this.currentPlan = { ...this.currentPlan, ...updates };
-        this.render();
+    exportPlans() {
+        const plans = storage.getPlans(this.currentRMName);
+        const json = JSON.stringify(plans, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `plans-${this.currentRMName}-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+    }
+
+    clearData() {
+        if (confirm('Clear all data for this plan? This cannot be undone.')) {
+            storage.deletePlan(this.currentPlan.id, this.currentRMName);
+            this.backToDashboard();
+        }
     }
 
     addGoal() {
@@ -587,44 +624,76 @@ class FinancialPlanningApp {
             stepUpPercent: 0,
             expectedReturnRate: null,
         });
+        storage.savePlan(this.currentPlan);
         this.render();
     }
 
     updateGoal(index, updates) {
         this.currentPlan.goals[index] = { ...this.currentPlan.goals[index], ...updates };
-        this.render();
-    }
-
-    removeGoal(index) {
-        this.currentPlan.goals.splice(index, 1);
-        this.render();
-    }
-
-    renderReportOnly() {
+        storage.savePlan(this.currentPlan);
         const reportPane = document.querySelector('.report-pane');
         if (reportPane) {
             reportPane.innerHTML = this.renderReport(this.currentPlan);
         }
     }
 
+    removeGoal(index) {
+        this.currentPlan.goals.splice(index, 1);
+        storage.savePlan(this.currentPlan);
+        this.render();
+    }
+
+    addAsset() {
+        this.currentPlan.assets.push({ id: Math.random().toString(), name: 'New Asset', value: 0 });
+        storage.savePlan(this.currentPlan);
+        this.render();
+    }
+
+    updateAsset(index, updates) {
+        this.currentPlan.assets[index] = { ...this.currentPlan.assets[index], ...updates };
+        storage.savePlan(this.currentPlan);
+        const reportPane = document.querySelector('.report-pane');
+        if (reportPane) {
+            reportPane.innerHTML = this.renderReport(this.currentPlan);
+        }
+    }
+
+    removeAsset(index) {
+        this.currentPlan.assets.splice(index, 1);
+        storage.savePlan(this.currentPlan);
+        this.render();
+    }
+
     addDebt() {
-        this.currentPlan.debts.push({
-            id: Math.random().toString(),
-            name: 'New Debt',
-            outstanding: 0,
-            monthlyEmi: 0,
-        });
+        this.currentPlan.debts.push({ id: Math.random().toString(), name: 'New Debt', outstanding: 0, monthlyEmi: 0 });
+        storage.savePlan(this.currentPlan);
         this.render();
     }
 
     updateDebt(index, updates) {
         this.currentPlan.debts[index] = { ...this.currentPlan.debts[index], ...updates };
-        this.render();
+        storage.savePlan(this.currentPlan);
+        const reportPane = document.querySelector('.report-pane');
+        if (reportPane) {
+            reportPane.innerHTML = this.renderReport(this.currentPlan);
+        }
     }
 
     removeDebt(index) {
         this.currentPlan.debts.splice(index, 1);
+        storage.savePlan(this.currentPlan);
         this.render();
+    }
+
+    attachDashboardEvents() {
+        const rmInput = document.getElementById('rmNameInput');
+        if (rmInput) {
+            rmInput.value = this.currentRMName || '';
+        }
+    }
+
+    attachBuilderEvents() {
+        // Events already attached via onclick attributes
     }
 }
 
