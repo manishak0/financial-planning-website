@@ -270,7 +270,14 @@ class FinancialPlanningApp {
 
                 <!-- Report Pane -->
                 <div class="report-pane">
-                    ${this.renderReport(plan)}
+                    <div style="padding: 40px; text-align: center;">
+                        <div style="margin-bottom: 24px;">
+                            <div class="logo" style="width: 64px; height: 64px; background: #1D2A4D; border-radius: 4px; margin: 0 auto; margin-bottom: 16px;"></div>
+                            <h3 style="margin: 0 0 8px 0;">Financial Plan Report</h3>
+                            <p style="color: #6B6558; margin: 0;">Click the button below to generate your report</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="app.showReport()" style="width: 100%; padding: 16px;">📊 Generate & View Report</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -522,7 +529,7 @@ class FinancialPlanningApp {
         `;
     }
 
-    // SIMPLE METHOD TO UPDATE PLAN FIELD - NO RENDER!
+    // SIMPLE METHOD - Just save plan, no rendering!
     updatePlanField(field, value) {
         if (field === 'currentAge' || field === 'retirementAge' || field === 'dependents' || 
             field === 'monthlyIncome' || field === 'monthlyExpenses' || field === 'insuranceLife' || 
@@ -532,7 +539,10 @@ class FinancialPlanningApp {
             this.currentPlan[field] = value;
         }
         storage.savePlan(this.currentPlan);
-        // Update report only
+    }
+
+    // Simple method to show report on demand
+    showReport() {
         const reportPane = document.querySelector('.report-pane');
         if (reportPane) {
             reportPane.innerHTML = this.renderReport(this.currentPlan);
@@ -631,10 +641,6 @@ class FinancialPlanningApp {
     updateGoal(index, updates) {
         this.currentPlan.goals[index] = { ...this.currentPlan.goals[index], ...updates };
         storage.savePlan(this.currentPlan);
-        const reportPane = document.querySelector('.report-pane');
-        if (reportPane) {
-            reportPane.innerHTML = this.renderReport(this.currentPlan);
-        }
     }
 
     removeGoal(index) {
@@ -652,10 +658,6 @@ class FinancialPlanningApp {
     updateAsset(index, updates) {
         this.currentPlan.assets[index] = { ...this.currentPlan.assets[index], ...updates };
         storage.savePlan(this.currentPlan);
-        const reportPane = document.querySelector('.report-pane');
-        if (reportPane) {
-            reportPane.innerHTML = this.renderReport(this.currentPlan);
-        }
     }
 
     removeAsset(index) {
@@ -673,10 +675,6 @@ class FinancialPlanningApp {
     updateDebt(index, updates) {
         this.currentPlan.debts[index] = { ...this.currentPlan.debts[index], ...updates };
         storage.savePlan(this.currentPlan);
-        const reportPane = document.querySelector('.report-pane');
-        if (reportPane) {
-            reportPane.innerHTML = this.renderReport(this.currentPlan);
-        }
     }
 
     removeDebt(index) {
