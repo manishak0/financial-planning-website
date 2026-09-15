@@ -154,34 +154,34 @@ class FinancialPlanningApp {
                         
                         <div class="form-group">
                             <label class="form-label">Client Name</label>
-                            <input type="text" value="${plan.clientName}" onchange="app.updatePlan({clientName: this.value})" oninput="app.plan.clientName = this.value; app.renderReport()">
+                            <input type="text" value="${plan.clientName}" onchange="app.updatePlan({clientName: this.value})" oninput="app.updateFieldAndRender('clientName', this.value)">
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Current Age</label>
-                                <input type="text" inputmode="decimal" value="${plan.currentAge ?? ''}" onchange="app.updatePlan({currentAge: parseDecimal(this.value)})" oninput="app.plan.currentAge = parseInt(this.value) || 0; app.renderReport()">
+                                <input type="text" inputmode="decimal" value="${plan.currentAge ?? ''}" onchange="app.updatePlan({currentAge: parseDecimal(this.value)})" oninput="app.updateFieldAndRender('currentAge', this.value)">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Retirement Age</label>
-                                <input type="text" inputmode="decimal" value="${plan.retirementAge ?? ''}" onchange="app.updatePlan({retirementAge: parseDecimal(this.value)})" oninput="app.plan.retirementAge = parseInt(this.value) || 0; app.renderReport()">
+                                <input type="text" inputmode="decimal" value="${plan.retirementAge ?? ''}" onchange="app.updatePlan({retirementAge: parseDecimal(this.value)})" oninput="app.updateFieldAndRender('retirementAge', this.value)">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Dependents</label>
-                                <input type="text" inputmode="decimal" value="${plan.dependents ?? ''}" onchange="app.updatePlan({dependents: parseDecimal(this.value)})" oninput="app.plan.dependents = parseInt(this.value) || 0; app.renderReport()">
+                                <input type="text" inputmode="decimal" value="${plan.dependents ?? ''}" onchange="app.updatePlan({dependents: parseDecimal(this.value)})" oninput="app.updateFieldAndRender('dependents', this.value)">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Monthly Income (₹)</label>
-                                <input type="text" inputmode="decimal" value="${plan.monthlyIncome ?? ''}" onchange="app.updatePlan({monthlyIncome: parseDecimal(this.value)})" oninput="app.plan.monthlyIncome = parseInt(this.value.replace(/,/g, '')) || 0; app.renderReport()">
+                                <input type="text" inputmode="decimal" value="${plan.monthlyIncome ?? ''}" onchange="app.updatePlan({monthlyIncome: parseDecimal(this.value)})" oninput="app.updateFieldAndRender('monthlyIncome', this.value)">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Monthly Expenses (₹)</label>
-                            <input type="text" inputmode="decimal" value="${plan.monthlyExpenses ?? ''}" onchange="app.updatePlan({monthlyExpenses: parseDecimal(this.value)})" oninput="app.plan.monthlyExpenses = parseInt(this.value.replace(/,/g, '')) || 0; app.renderReport()">
+                            <input type="text" inputmode="decimal" value="${plan.monthlyExpenses ?? ''}" onchange="app.updatePlan({monthlyExpenses: parseDecimal(this.value)})" oninput="app.updateFieldAndRender('monthlyExpenses', this.value)">
                         </div>
                     </div>
 
@@ -598,6 +598,28 @@ class FinancialPlanningApp {
     removeGoal(index) {
         this.currentPlan.goals.splice(index, 1);
         this.render();
+    }
+
+    updateFieldAndRender(fieldName, value) {
+        if (fieldName === 'clientName') {
+            this.currentPlan.clientName = value;
+        } else if (fieldName === 'currentAge') {
+            this.currentPlan.currentAge = parseInt(value) || 0;
+        } else if (fieldName === 'retirementAge') {
+            this.currentPlan.retirementAge = parseInt(value) || 0;
+        } else if (fieldName === 'dependents') {
+            this.currentPlan.dependents = parseInt(value) || 0;
+        } else if (fieldName === 'monthlyIncome') {
+            this.currentPlan.monthlyIncome = parseInt(value.replace(/,/g, '')) || 0;
+        } else if (fieldName === 'monthlyExpenses') {
+            this.currentPlan.monthlyExpenses = parseInt(value.replace(/,/g, '')) || 0;
+        }
+        
+        // Update the report section
+        const reportContainer = document.querySelector('.report-content');
+        if (reportContainer) {
+            reportContainer.innerHTML = this.renderReport(this.currentPlan);
+        }
     }
 
     addDebt() {
