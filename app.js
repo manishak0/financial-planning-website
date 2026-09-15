@@ -154,34 +154,34 @@ class FinancialPlanningApp {
                         
                         <div class="form-group">
                             <label class="form-label">Client Name</label>
-                            <input type="text" value="${plan.clientName}" onchange="app.updatePlan({clientName: this.value})">
+                            <input type="text" value="${plan.clientName}" onchange="app.updatePlan({clientName: this.value})" oninput="app.plan.clientName = this.value; app.renderReport()">
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Current Age</label>
-                                <input type="text" inputmode="decimal" value="${plan.currentAge ?? ''}" onchange="app.updatePlan({currentAge: parseDecimal(this.value)})">
+                                <input type="text" inputmode="decimal" value="${plan.currentAge ?? ''}" onchange="app.updatePlan({currentAge: parseDecimal(this.value)})" oninput="app.plan.currentAge = parseInt(this.value) || 0; app.renderReport()">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Retirement Age</label>
-                                <input type="text" inputmode="decimal" value="${plan.retirementAge ?? ''}" onchange="app.updatePlan({retirementAge: parseDecimal(this.value)})">
+                                <input type="text" inputmode="decimal" value="${plan.retirementAge ?? ''}" onchange="app.updatePlan({retirementAge: parseDecimal(this.value)})" oninput="app.plan.retirementAge = parseInt(this.value) || 0; app.renderReport()">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Dependents</label>
-                                <input type="text" inputmode="decimal" value="${plan.dependents ?? ''}" onchange="app.updatePlan({dependents: parseDecimal(this.value)})">
+                                <input type="text" inputmode="decimal" value="${plan.dependents ?? ''}" onchange="app.updatePlan({dependents: parseDecimal(this.value)})" oninput="app.plan.dependents = parseInt(this.value) || 0; app.renderReport()">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Monthly Income (₹)</label>
-                                <input type="text" inputmode="decimal" value="${plan.monthlyIncome ?? ''}" onchange="app.updatePlan({monthlyIncome: parseDecimal(this.value)})">
+                                <input type="text" inputmode="decimal" value="${plan.monthlyIncome ?? ''}" onchange="app.updatePlan({monthlyIncome: parseDecimal(this.value)})" oninput="app.plan.monthlyIncome = parseInt(this.value.replace(/,/g, '')) || 0; app.renderReport()">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Monthly Expenses (₹)</label>
-                            <input type="text" inputmode="decimal" value="${plan.monthlyExpenses ?? ''}" onchange="app.updatePlan({monthlyExpenses: parseDecimal(this.value)})">
+                            <input type="text" inputmode="decimal" value="${plan.monthlyExpenses ?? ''}" onchange="app.updatePlan({monthlyExpenses: parseDecimal(this.value)})" oninput="app.plan.monthlyExpenses = parseInt(this.value.replace(/,/g, '')) || 0; app.renderReport()">
                         </div>
                     </div>
 
