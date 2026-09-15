@@ -616,7 +616,7 @@ class FinancialPlanningApp {
         }
         
         // Update the report section
-        const reportContainer = document.querySelector('.report-content');
+        const reportContainer = document.querySelector('.report-pane');
         if (reportContainer) {
             reportContainer.innerHTML = this.renderReport(this.currentPlan);
         }
