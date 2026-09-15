@@ -154,34 +154,34 @@ class FinancialPlanningApp {
                         
                         <div class="form-group">
                             <label class="form-label">Client Name</label>
-                            <input type="text" value="${plan.clientName}" onchange="app.updatePlan({clientName: this.value})" oninput="app.updateAndRender('clientName', this.value)">
+                            <input type="text" value="${plan.clientName}" onchange="app.updatePlan({clientName: this.value}); app.renderReportOnly()">
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Current Age</label>
-                                <input type="text" inputmode="decimal" value="${plan.currentAge ?? ''}" onchange="app.updatePlan({currentAge: parseDecimal(this.value)})" oninput="app.updateAndRender('currentAge', this.value)">
+                                <input type="text" inputmode="decimal" value="${plan.currentAge ?? ''}" onchange="app.updatePlan({currentAge: parseDecimal(this.value)}); app.renderReportOnly()">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Retirement Age</label>
-                                <input type="text" inputmode="decimal" value="${plan.retirementAge ?? ''}" onchange="app.updatePlan({retirementAge: parseDecimal(this.value)})" oninput="app.updateAndRender('retirementAge', this.value)">
+                                <input type="text" inputmode="decimal" value="${plan.retirementAge ?? ''}" onchange="app.updatePlan({retirementAge: parseDecimal(this.value)}); app.renderReportOnly()">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Dependents</label>
-                                <input type="text" inputmode="decimal" value="${plan.dependents ?? ''}" onchange="app.updatePlan({dependents: parseDecimal(this.value)})" oninput="app.updateAndRender('dependents', this.value)">
+                                <input type="text" inputmode="decimal" value="${plan.dependents ?? ''}" onchange="app.updatePlan({dependents: parseDecimal(this.value)}); app.renderReportOnly()">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Monthly Income (₹)</label>
-                                <input type="text" inputmode="decimal" value="${plan.monthlyIncome ?? ''}" onchange="app.updatePlan({monthlyIncome: parseDecimal(this.value)})" oninput="app.updateAndRender('monthlyIncome', this.value)">
+                                <input type="text" inputmode="decimal" value="${plan.monthlyIncome ?? ''}" onchange="app.updatePlan({monthlyIncome: parseDecimal(this.value)}); app.renderReportOnly()">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Monthly Expenses (₹)</label>
-                            <input type="text" inputmode="decimal" value="${plan.monthlyExpenses ?? ''}" onchange="app.updatePlan({monthlyExpenses: parseDecimal(this.value)})" oninput="app.updateAndRender('monthlyExpenses', this.value)">
+                            <input type="text" inputmode="decimal" value="${plan.monthlyExpenses ?? ''}" onchange="app.updatePlan({monthlyExpenses: parseDecimal(this.value)}); app.renderReportOnly()">
                         </div>
                     </div>
 
@@ -600,23 +600,7 @@ class FinancialPlanningApp {
         this.render();
     }
 
-    updateAndRender(fieldName, value) {
-        // Update plan
-        if (fieldName === 'clientName') {
-            this.currentPlan.clientName = value;
-        } else if (fieldName === 'currentAge') {
-            this.currentPlan.currentAge = parseInt(value) || 0;
-        } else if (fieldName === 'retirementAge') {
-            this.currentPlan.retirementAge = parseInt(value) || 0;
-        } else if (fieldName === 'dependents') {
-            this.currentPlan.dependents = parseInt(value) || 0;
-        } else if (fieldName === 'monthlyIncome') {
-            this.currentPlan.monthlyIncome = parseInt(value.replace(/,/g, '')) || 0;
-        } else if (fieldName === 'monthlyExpenses') {
-            this.currentPlan.monthlyExpenses = parseInt(value.replace(/,/g, '')) || 0;
-        }
-        
-        // Only re-render the report pane, not the entire page
+    renderReportOnly() {
         const reportPane = document.querySelector('.report-pane');
         if (reportPane) {
             reportPane.innerHTML = this.renderReport(this.currentPlan);
